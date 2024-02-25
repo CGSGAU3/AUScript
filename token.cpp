@@ -369,11 +369,11 @@ std::vector<Oper> Tok::opers =
               throw "LValue required!";
 
             std::cin >> l.var.num;
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 
             if (std::cin.fail())
             {
               std::cin.clear();
-              std::cin.ignore();
               throw "Invalid input!";
             }
             Tok::varTree[l.name].num = l.var.num;
