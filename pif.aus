@@ -1,0 +1,18 @@
+last = 0;
+scan(last);
+w = h = 1;
+while (w <= last)
+{
+  while (h <= last)
+  {
+    if (h != last)
+      printw(w * h, 5);
+    else
+      printwln(w * h, 5);
+    ++h;
+  }
+  ++w;
+  h = 1;
+}
+
+  
