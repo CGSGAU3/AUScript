@@ -98,7 +98,8 @@ Scanner::Scanner( const std::string &str )
           {
             {"if", Keyword::IF},
             {"else", Keyword::ELSE},
-            {"while", Keyword::WHILE}
+            {"while", Keyword::WHILE},
+            {"echo", Keyword::ECHO}
           };
 
           if (kws.find(tok.name) != kws.end())
@@ -119,6 +120,35 @@ Scanner::Scanner( const std::string &str )
 
         /* Try to upgrade variable to keyword */
         upgradeKeyword(token);
+
+        /* Check echo */
+        if (token.id == TokID::KEYW && token.keyw == Keyword::ECHO)
+        {
+          while (isspace((unsigned char)*s))
+            s++;
+          if (*s++ != '(')
+            throw "After echo keyword need (<text>) !";
+
+          /* Pre-parse string in echo */
+          int brCount = 1;
+          while (brCount && *s != 0)
+          {
+            if (*s == '(')
+              brCount++;
+            if (*s == ')')
+              brCount--;
+
+            if (brCount != 0)
+              token.name += *s;
+            s++;
+          }
+
+          if (*s == 0 && brCount != 0)
+            throw "Troubles with brackets in echo!";
+
+          /* Finaize (skip 'echo' word) */
+          token.name = token.name.substr(4);
+        }
 
         /* Upgrade variable to oper */
         for (const auto &op : Tok::opers)

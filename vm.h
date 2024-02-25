@@ -8,6 +8,7 @@ enum struct CommandID
   EXPR,     // for common expressions
   IF,       // if/else statement
   WHILE,    // while loop
+  ECHO,     // echo command
   COMPOSITE // for commands in {}
 };
 
@@ -17,10 +18,11 @@ std::string parseBetween( Queue<Tok> &tokList, const char last );
 /* Command structure */
 struct Command
 {
-  CommandID id;    // type of the command
-  Calculator expr; // for expressions
-  Command *addon1, // for if statement & while
-          *addon2; // for else statement
+  CommandID id;        // type of the command
+  Calculator expr;     // for expressions
+  Command *addon1,     // for if statement & while
+          *addon2;     // for else statement
+  std::string echoStr; // for echo
 
   /* For composite commands */
   std::vector<Command *> nestedCommand;
@@ -30,7 +32,8 @@ struct Command
 
   /* Default initialization */
   Command( Queue<Tok> &input ) : id(CommandID::EXPR),
-    addon1(nullptr), addon2(nullptr), tokList(input)
+    addon1(nullptr), addon2(nullptr), tokList(input), 
+    echoStr("")
   {
   }
 

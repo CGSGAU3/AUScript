@@ -1,3 +1,4 @@
+echo(Input last number: );
 last = 0;
 scan(last);
 w = h = 1;

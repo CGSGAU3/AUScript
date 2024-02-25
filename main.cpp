@@ -58,7 +58,6 @@ int main( void )
       {
         Interpreter intp("pif.aus");
 
-        std::cout << "Input last number: ";
         long t = clock();
         intp.run();
         t = clock() - t;

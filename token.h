@@ -16,15 +16,16 @@ enum struct TokID
   NUM,  // numbers
   VAR,  // for variables
   KEYW, // keywords ex. if/else/while
-  SPEC, // special symbols: { } ;
+  SPEC  // special symbols: { } ;
 };
 
 /* Keywords also different */
 enum struct Keyword
 {
-  IF,   // if/else statement
-  ELSE, // if/else statement
-  WHILE // while loop
+  IF,    // if/else statement
+  ELSE,  // if/else statement
+  WHILE, // while loop
+  ECHO   // raw print on screen
 
   /* Note. there is no for loop, because it harder */
 };

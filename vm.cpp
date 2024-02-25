@@ -112,8 +112,12 @@ bool Command::parse( void )
     /* Obtain type of the token */
     if (cur.id == TokID::KEYW)
     {
-      if (cur.keyw == Keyword::IF)
+      /* Because switch swears */
+      std::string exprInIf, exprInWhile;
+
+      switch (cur.keyw)
       {
+      case Keyword::IF:
         /* Skip keyword */
         id = CommandID::IF;
         nextTok();
@@ -123,7 +127,7 @@ bool Command::parse( void )
           throw "After if '(' expected!";
 
         /* Parse an if statement */
-        std::string exprInIf = parseBetween(tokList, ')');
+        exprInIf = parseBetween(tokList, ')');
         expr = Calculator(exprInIf);
 
         /* Parse expression in if statement */
@@ -143,28 +147,39 @@ bool Command::parse( void )
           if (!addon2->parse())
             throw "Unexpected end of else block!";
         }
-      }
-      else if (cur.keyw == Keyword::WHILE)
-      {
+        break;
+      case Keyword::WHILE:
         /* Skip keyword */
         id = CommandID::WHILE;
         nextTok();
 
         /* Check '(' */
         if (cur.id != TokID::OP || cur.op.name != "(")
-          throw "After if '(' expected!";
+          throw "After while '(' expected!";
 
         /* Parse a while statement */
-        std::string exprInWhile = parseBetween(tokList, ')');
+        exprInWhile = parseBetween(tokList, ')');
         expr = Calculator(exprInWhile);
 
         /* Parse expression in while statement */
         addon1 = new Command(tokList);
         if (!addon1->parse())
           throw "Unexpected end of while block!";
-      }
-      else
+        break;
+      case Keyword::ECHO:
+        /* Get information from token & skip */
+        id = CommandID::ECHO;
+        echoStr = cur.name;
+        nextTok();
+
+        if (cur.id != TokID::SPEC || cur.symbol != ';')
+          throw "After echo statement ';' required!";
+        break;
+      case Keyword::ELSE:
         throw "Invalid else without paired if!";
+      default:
+        throw "Unknown keyword!";
+      }
     }
     else if (cur.id == TokID::SPEC && cur.symbol == '{')
     {
@@ -200,24 +215,30 @@ bool Command::parse( void )
 /* Command run method */
 void Command::run( void ) const
 {
-  if (id == CommandID::EXPR)
-    expr.eval();
-  else if (id == CommandID::IF)
+  switch (id)
   {
+  case CommandID::EXPR:
+    expr.eval();
+    break;
+  case CommandID::IF:
     if ((bool)expr.eval())
       addon1->run();
-    else
+    else if (addon2 != nullptr)
       addon2->run();
-  }
-  else if (id == CommandID::WHILE)
-  {
+    break;
+  case CommandID::WHILE:
     while ((bool)expr.eval())
       addon1->run();
-  }
-  else if (id == CommandID::COMPOSITE)
-  {
+    break;
+  case CommandID::ECHO:
+    std::cout << echoStr << std::endl;
+    break;
+  case CommandID::COMPOSITE:
     for (const auto &cmd : nestedCommand)
       cmd->run();
+    break;
+  default:
+    throw "Unknown command!";
   }
 }
 
