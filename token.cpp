@@ -3,7 +3,7 @@
 #include "token.h"
 
 /* Variables store */
-std::map<std::string, double> Tok::varTree;
+std::map<std::string, Variable> Tok::varTree;
 
 /* Operators store */
 std::vector<Oper> Tok::opers = 
@@ -12,47 +12,56 @@ std::vector<Oper> Tok::opers =
   {"+", std::function<Tok( Tok &, const Tok & )>
         ([]( Tok &l, const Tok &r ) -> Tok
           {
-            l.num += r.num;
+            l.var.num += r.var.num;
             return l;
           }
         ), OperType::INFIX, OperAssocType::LEFT, Prior::PLUSMIN},
   {"-", std::function<Tok( Tok &, const Tok & )>
         ([]( Tok &l, const Tok &r ) -> Tok
           {
-            l.num -= r.num;
+            l.var.num -= r.var.num;
             return l;
           }
         ), OperType::INFIX, OperAssocType::LEFT, Prior::PLUSMIN},
   {"*", std::function<Tok( Tok &, const Tok & )>
         ([]( Tok &l, const Tok &r ) -> Tok
           {
-            l.num *= r.num;
+            l.var.num *= r.var.num;
             return l;
           }
         ), OperType::INFIX, OperAssocType::LEFT, Prior::MULDIV},
   {"/", std::function<Tok( Tok &, const Tok & )>
         ([]( Tok &l, const Tok &r ) -> Tok
           {
-            if (fabs(r.num) < 1e-14)
+            if (fabs(r.var.num) < 1e-14)
               throw "Division by zero!";
-            l.num /= r.num;
+            l.var.num /= r.var.num;
+            return l;
+          }
+        ), OperType::INFIX, OperAssocType::LEFT, Prior::MULDIV},
+  {"//", std::function<Tok( Tok &, const Tok & )>
+        ([]( Tok &l, const Tok &r ) -> Tok
+          {
+            if (fabs(r.var.num) < 1e-14)
+              throw "Division by zero!";
+            l.var.num = int(l.var.num / r.var.num);
             return l;
           }
         ), OperType::INFIX, OperAssocType::LEFT, Prior::MULDIV},
   {"%", std::function<Tok( Tok &, const Tok & )>
         ([]( Tok &l, const Tok &r ) -> Tok
           {
-            if (fabs(r.num) < 1e-14)
+            if (fabs(r.var.num) < 1e-14)
               throw "Division by zero!";
 
-            l.num = fmod(l.num, r.num);
+            l.var.num = fmod(l.var.num, r.var.num);
             return l;
           }
         ), OperType::INFIX, OperAssocType::LEFT, Prior::MULDIV},
   {"^", std::function<Tok( Tok &, const Tok & )>
         ([]( Tok &l, const Tok &r ) -> Tok
           {
-            l.num = pow(l.num, r.num);
+            l.var.num = pow(l.var.num, r.var.num);
             return l;
           }
         ), OperType::INFIX, OperAssocType::LEFT, Prior::IOSQRT},
@@ -61,14 +70,14 @@ std::vector<Oper> Tok::opers =
   {"@", std::function<Tok( Tok &, const Tok & )> // unary -
         ([]( Tok &l, const Tok &r ) -> Tok
           {
-            l.num = -l.num;
+            l.var.num = -l.var.num;
             return l;
           }
         ), OperType::PREFIX, OperAssocType::LEFT, Prior::UNARYOP},
   {"#", std::function<Tok( Tok &, const Tok & )>
         ([]( Tok &l, const Tok &r ) -> Tok
           {
-            l.num = sqrt(l.num);
+            l.var.num = sqrt(l.var.num);
             return l;
           }
         ), OperType::PREFIX, OperAssocType::LEFT, Prior::IOSQRT},
@@ -78,7 +87,7 @@ std::vector<Oper> Tok::opers =
             if (l.id != TokID::VAR)
               throw "LValue required!";
 
-            Tok::varTree[l.name]++, l.num++;
+            Tok::varTree[l.name].num++, l.var.num++;
             return l;
           }
         ), OperType::PREFIX, OperAssocType::RIGHT, Prior::UNARYOP},
@@ -88,7 +97,7 @@ std::vector<Oper> Tok::opers =
             if (l.id != TokID::VAR)
               throw "LValue required!";
 
-            Tok::varTree[l.name]--, l.num--;
+            Tok::varTree[l.name].num--, l.var.num--;
             return l;
           }
         ), OperType::PREFIX, OperAssocType::RIGHT, Prior::UNARYOP},
@@ -97,21 +106,21 @@ std::vector<Oper> Tok::opers =
   {"&&", std::function<Tok( Tok &, const Tok & )>
         ([]( Tok &l, const Tok &r ) -> Tok
           {
-            l.num = ((bool)l.num && (bool)r.num);
+            l.var.num = ((bool)l.var.num && (bool)r.var.num);
             return l;
           }
         ), OperType::INFIX, OperAssocType::LEFT, Prior::BOOLAND},
   {"||", std::function<Tok( Tok &, const Tok & )>
         ([]( Tok &l, const Tok &r ) -> Tok
           {
-            l.num = ((bool)l.num || (bool)r.num);
+            l.var.num = ((bool)l.var.num || (bool)r.var.num);
             return l;
           }
         ), OperType::INFIX, OperAssocType::LEFT, Prior::BOOLOR},
   {"!", std::function<Tok( Tok &, const Tok & )>
         ([]( Tok &l, const Tok &r ) -> Tok
           {
-            l.num = !(bool)l.num;
+            l.var.num = !(bool)l.var.num;
             return l;
           }
         ), OperType::PREFIX, OperAssocType::RIGHT, Prior::UNARYOP},
@@ -120,10 +129,10 @@ std::vector<Oper> Tok::opers =
         ([]( Tok &l, const Tok &r ) -> Tok
           {
             l.id = TokID::NUM;
-            l.num = r.num;
+            l.var.num = r.var.num;
             return l;
           }
-        ), OperType::POSTFIX, OperAssocType::RIGHT, Prior::ZPT},
+        ), OperType::INFIX, OperAssocType::RIGHT, Prior::ZPT},
 #pragma region Assignment
   {"=", std::function<Tok( Tok &, const Tok & )>
         ([]( Tok &l, const Tok &r ) -> Tok
@@ -131,8 +140,11 @@ std::vector<Oper> Tok::opers =
             if (l.id != TokID::VAR)
               throw "LValue required!";
 
-            Tok::varTree[l.name] = r.num;
-            l.num = r.num;
+            Tok::varTree[l.name].num = r.var.num;
+            if (l.var.type == VarType::ARRAY)
+              Tok::varTree[l.name].arr[l.var.usedIndex] = r.var.num;
+
+            l.var.num = r.var.num;
             return l;
           }
         ), OperType::INFIX, OperAssocType::RIGHT, Prior::ASSIGN},
@@ -142,8 +154,8 @@ std::vector<Oper> Tok::opers =
             if (l.id != TokID::VAR)
               throw "LValue required!";
 
-            Tok::varTree[l.name] += r.num;
-            l.num += r.num;
+            Tok::varTree[l.name].num += r.var.num;
+            l.var.num += r.var.num;
             return l;
           }
         ), OperType::INFIX, OperAssocType::RIGHT, Prior::ASSIGN},
@@ -153,8 +165,8 @@ std::vector<Oper> Tok::opers =
             if (l.id != TokID::VAR)
               throw "LValue required!";
 
-            Tok::varTree[l.name] -= r.num;
-            l.num -= r.num;
+            Tok::varTree[l.name].num -= r.var.num;
+            l.var.num -= r.var.num;
             return l;
           }
         ), OperType::INFIX, OperAssocType::RIGHT, Prior::ASSIGN},
@@ -164,8 +176,8 @@ std::vector<Oper> Tok::opers =
             if (l.id != TokID::VAR)
               throw "LValue required!";
 
-            Tok::varTree[l.name] *= r.num;
-            l.num *= r.num;
+            Tok::varTree[l.name].num *= r.var.num;
+            l.var.num *= r.var.num;
             return l;
           }
         ), OperType::INFIX, OperAssocType::RIGHT, Prior::ASSIGN},
@@ -175,11 +187,25 @@ std::vector<Oper> Tok::opers =
             if (l.id != TokID::VAR)
               throw "LValue required!";
 
-            if (fabs(r.num) < 1e-14)
+            if (fabs(r.var.num) < 1e-14)
               throw "Division by zero!";
 
-            Tok::varTree[l.name] /= r.num;
-            l.num /= r.num;
+            Tok::varTree[l.name].num /= r.var.num;
+            l.var.num /= r.var.num;
+            return l;
+          }
+        ), OperType::INFIX, OperAssocType::RIGHT, Prior::ASSIGN},
+  {"//=", std::function<Tok( Tok &, const Tok & )>
+        ([]( Tok &l, const Tok &r ) -> Tok
+          {
+            if (l.id != TokID::VAR)
+              throw "LValue required!";
+
+            if (fabs(r.var.num) < 1e-14)
+              throw "Division by zero!";
+
+            Tok::varTree[l.name].num = int(Tok::varTree[l.name].num / r.var.num);
+            l.var.num = int(l.var.num / r.var.num);
             return l;
           }
         ), OperType::INFIX, OperAssocType::RIGHT, Prior::ASSIGN},
@@ -189,11 +215,11 @@ std::vector<Oper> Tok::opers =
             if (l.id != TokID::VAR)
               throw "LValue required!";
 
-            if (fabs(r.num) < 1e-14)
+            if (fabs(r.var.num) < 1e-14)
               throw "Division by zero!";
 
-            Tok::varTree[l.name] = fmod(l.num, r.num);
-            l.num = fmod(l.num, r.num);
+            Tok::varTree[l.name].num = fmod(l.var.num, r.var.num);
+            l.var.num = fmod(l.var.num, r.var.num);
             return l;
           }
         ), OperType::INFIX, OperAssocType::RIGHT, Prior::ASSIGN},
@@ -211,47 +237,78 @@ std::vector<Oper> Tok::opers =
             return l;
           }
         ), OperType::POSTFIX, OperAssocType::LEFT, Prior::CLOSEBR},
+  {"[", std::function<Tok( Tok &, const Tok & )>
+        ([]( Tok &l, const Tok &r ) -> Tok
+          {
+            return l;
+          }
+        ), OperType::POSTFIX, OperAssocType::LEFT, Prior::OPENIDX},
+  {"]", std::function<Tok( Tok &, const Tok & )>
+        ([]( Tok &l, const Tok &r ) -> Tok
+          {
+            return l;
+          }
+        ), OperType::POSTFIX, OperAssocType::LEFT, Prior::CLOSEIDX},
+  {"[]", std::function<Tok( Tok &, const Tok & )>
+        ([]( Tok &l, const Tok &r ) -> Tok
+          {
+            if (l.id != TokID::VAR)
+              throw "LValue required!";
+
+            if (l.var.type != VarType::ARRAY)
+              throw "Array required!";
+
+            int index = (int)r.var.num;
+
+            if (index >= (int)l.var.arr.size() || index < 0)
+              throw "Invalid index!";
+
+            l.var.num = Tok::varTree[l.name].arr[index];
+            l.var.usedIndex = index;
+            return l;
+          }
+        ), OperType::POSTFIX, OperAssocType::LEFT, Prior::INDEX},
 #pragma endregion
 #pragma region Compare
   {"<", std::function<Tok( Tok &, const Tok & )>
         ([]( Tok &l, const Tok &r ) -> Tok
           {
-            l.num = (l.num < r.num);
+            l.var.num = (l.var.num < r.var.num);
             return l;
           }
         ), OperType::INFIX, OperAssocType::LEFT, Prior::LESSMORE},
   {"<=", std::function<Tok( Tok &, const Tok & )>
         ([]( Tok &l, const Tok &r ) -> Tok
           {
-            l.num = (l.num <= r.num);
+            l.var.num = (l.var.num <= r.var.num);
             return l;
           }
         ), OperType::INFIX, OperAssocType::LEFT, Prior::LESSMORE},
   {">", std::function<Tok( Tok &, const Tok & )>
         ([]( Tok &l, const Tok &r ) -> Tok
           {
-            l.num = (l.num > r.num);
+            l.var.num = (l.var.num > r.var.num);
             return l;
           }
         ), OperType::INFIX, OperAssocType::LEFT, Prior::LESSMORE},
   {">=", std::function<Tok( Tok &, const Tok & )>
         ([]( Tok &l, const Tok &r ) -> Tok
           {
-            l.num = (l.num >= r.num);
+            l.var.num = (l.var.num >= r.var.num);
             return l;
           }
         ), OperType::INFIX, OperAssocType::LEFT, Prior::LESSMORE},
   {"==", std::function<Tok( Tok &, const Tok & )>
         ([]( Tok &l, const Tok &r ) -> Tok
           {
-            l.num = (fabs(l.num - r.num) < 1e-14);
+            l.var.num = (fabs(l.var.num - r.var.num) < 1e-14);
             return l;
           }
         ), OperType::INFIX, OperAssocType::LEFT, Prior::EQUALNOT},
   {"!=", std::function<Tok( Tok &, const Tok & )>
         ([]( Tok &l, const Tok &r ) -> Tok
           {
-            l.num = (fabs(l.num - r.num) >= 1e-14);
+            l.var.num = (fabs(l.var.num - r.var.num) >= 1e-14);
             return l;
           }
         ), OperType::INFIX, OperAssocType::LEFT, Prior::EQUALNOT},
@@ -260,48 +317,48 @@ std::vector<Oper> Tok::opers =
   {"print", std::function<Tok( Tok &, const Tok & )>
         ([]( Tok &l, const Tok &r ) -> Tok
           {
-            double frac = l.num - (int)l.num;
+            double frac = l.var.num - (int)l.var.num;
 
             if (fabs(frac) < 1e-14)
-              printf("%i", (int)l.num);
+              printf("%i", (int)l.var.num);
             else
-              printf("%g", l.num);
+              printf("%g", l.var.num);
             return l;
           }
         ), OperType::PREFIX, OperAssocType::LEFT, Prior::IOSQRT},
   {"println", std::function<Tok( Tok &, const Tok & )>
         ([]( Tok &l, const Tok &r ) -> Tok
           {
-            double frac = l.num - (int)l.num;
+            double frac = l.var.num - (int)l.var.num;
 
             if (fabs(frac) < 1e-14)
-              printf("%i\n", (int)l.num);
+              printf("%i\n", (int)l.var.num);
             else
-              printf("%g\n", l.num);
+              printf("%g\n", l.var.num);
             return l;
           }
         ), OperType::PREFIX, OperAssocType::LEFT, Prior::IOSQRT},
   {"printw", std::function<Tok( Tok &, const Tok & )>
         ([]( Tok &l, const Tok &r ) -> Tok
           {
-            double frac = l.num - (int)l.num;
+            double frac = l.var.num - (int)l.var.num;
 
             if (fabs(frac) < 1e-14)
-              printf("%*i", (int)r.num, (int)l.num);
+              printf("%*i", (int)r.var.num, (int)l.var.num);
             else
-              printf("%*g", (int)r.num, l.num);
+              printf("%*g", (int)r.var.num, l.var.num);
             return l;
           }
         ), OperType::PREFIX, OperAssocType::LEFT, Prior::IOSQRT},
   {"printwln", std::function<Tok( Tok &, const Tok & )>
         ([]( Tok &l, const Tok &r ) -> Tok
           {
-            double frac = l.num - (int)l.num;
+            double frac = l.var.num - (int)l.var.num;
 
             if (fabs(frac) < 1e-14)
-              printf("%*i\n", (int)r.num, (int)l.num);
+              printf("%*i\n", (int)r.var.num, (int)l.var.num);
             else
-              printf("%*g\n", (int)r.num, l.num);
+              printf("%*g\n", (int)r.var.num, l.var.num);
             return l;
           }
         ), OperType::PREFIX, OperAssocType::LEFT, Prior::IOSQRT},
@@ -311,22 +368,29 @@ std::vector<Oper> Tok::opers =
             if (l.id != TokID::VAR)
               throw "LValue required!";
 
-            std::cin >> l.num;
-            Tok::varTree[l.name] = l.num;
+            std::cin >> l.var.num;
+
+            if (std::cin.fail())
+            {
+              std::cin.clear();
+              std::cin.ignore();
+              throw "Invalid input!";
+            }
+            Tok::varTree[l.name].num = l.var.num;
             return l;
           }
         ), OperType::PREFIX, OperAssocType::LEFT, Prior::IOSQRT},
   {"sin", std::function<Tok( Tok &, const Tok & )>
         ([]( Tok &l, const Tok &r ) -> Tok
           {
-            l.num = sin(l.num);
+            l.var.num = sin(l.var.num);
             return l;
           }
         ), OperType::PREFIX, OperAssocType::LEFT, Prior::SINCOS},
   {"cos", std::function<Tok( Tok &, const Tok & )>
         ([]( Tok &l, const Tok &r ) -> Tok
           {
-            l.num = cos(l.num);
+            l.var.num = cos(l.var.num);
             return l;
           }
         ), OperType::PREFIX, OperAssocType::LEFT, Prior::SINCOS},
@@ -348,7 +412,7 @@ std::ostream & operator <<( std::ostream &stream, const Tok &token )
   switch (token.id)
   {
   case TokID::NUM:
-    stream << token.num;
+    stream << token.var.num;
     break;
   case TokID::OP:
     stream << token.op.name;

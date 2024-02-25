@@ -1,0 +1,25 @@
+echo(Input number to convert into binary:);
+x = 0;
+scan(x);
+
+array (arr) (1000);
+i = 0;
+while (x > 0)
+{
+  arr[i] = x % 2;
+  x //= 2;
+  ++i;
+}
+
+was1 = 0;
+for (i = 999; i >= 0; --i)
+{
+  if (was1)
+    print(arr[i]);
+  else
+  {
+    if (arr[i] == 1)
+      was1 = 1, print(arr[i]);  
+  }
+}
+echo();

@@ -61,7 +61,14 @@ Queue<Tok> & Parser::run( void )
          prior >= current oper prior to the result queue */
       dropOpers(token.op);
 
-      if (token.op.name != ")")
+      if (token.op.name == "]")
+      {
+        if (!opStack.pop())
+          throw "Missing '['";
+        token.op = Tok::findOper("[]");
+        opStack.push(token);
+      }
+      else if (token.op.name != ")")
         opStack.push(token), state = State::PREFIX;
       else if (!opStack.pop())
         throw "Missing '('";
@@ -70,7 +77,7 @@ Queue<Tok> & Parser::run( void )
       /* Process closing bracket */
       dropOpers(Tok::findOper(")"));
       if (!opStack.empty())
-        throw "Missing ')'";
+        throw "Missing ')' or ']'";
       return opQueue;
     }
   }

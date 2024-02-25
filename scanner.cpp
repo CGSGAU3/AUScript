@@ -9,7 +9,7 @@ Scanner::Scanner( const std::string &str )
   auto isOperSymbol = []
   ( char ch )
   {
-    std::string all = "+-*/%()^#=,<>!&|";
+    std::string all = "+-*/%()^#=,<>!&|[]";
 
     return (all.find(ch) != all.npos);
   };
@@ -29,16 +29,16 @@ Scanner::Scanner( const std::string &str )
     if (isdigit((unsigned char)*s))
     {
       token.id = TokID::NUM;
-      token.num = 0;
+      token.var.num = 0;
       while (isdigit((unsigned char)*s))
-        token.name += *s, token.num = token.num * 10 + *s++ - '0';
+        token.name += *s, token.var.num = token.var.num * 10 + *s++ - '0';
       if (*s == '.')
       {
         double denom = 1;
 
         token.name += *s++;
         while (isdigit((unsigned char)*s))
-          token.name += *s, token.num += (double(*s++) - '0') / (denom *= 10);
+          token.name += *s, token.var.num += (double(*s++) - '0') / (denom *= 10);
       }
       scanned.put(token);
       continue;
@@ -100,7 +100,8 @@ Scanner::Scanner( const std::string &str )
             {"else", Keyword::ELSE},
             {"while", Keyword::WHILE},
             {"for", Keyword::FOR},
-            {"echo", Keyword::ECHO}
+            {"echo", Keyword::ECHO},
+            {"array", Keyword::ARRAY}
           };
 
           if (kws.find(tok.name) != kws.end())
@@ -117,7 +118,7 @@ Scanner::Scanner( const std::string &str )
 
         /* Assign number to variable if exists */
         if (Tok::varTree.find(token.name) != Tok::varTree.end())
-          token.num = Tok::varTree[token.name];
+          token.var = Tok::varTree[token.name];
 
         /* Try to upgrade variable to keyword */
         upgradeKeyword(token);

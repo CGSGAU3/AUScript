@@ -10,6 +10,7 @@ enum struct CommandID
   WHILE,    // while loop
   FOR,      // for loop
   ECHO,     // echo command
+  ARRAY,    // array declaration command
   COMPOSITE // for commands in {}
 };
 
@@ -24,7 +25,7 @@ struct Command
   Command *addon1,     // for if statement & while
           *addon2,     // for else statement
           *addon3;     // for "for" loop
-  std::string echoStr; // for echo
+  std::string echoStr; // for echo & array name
 
   /* For composite commands */
   std::vector<Command *> nestedCommand;

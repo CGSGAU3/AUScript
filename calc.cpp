@@ -61,7 +61,7 @@ double Calculator::eval( void ) const
     {
       if (token.id == TokID::VAR && 
           Tok::varTree.find(token.name) != Tok::varTree.end())
-        token.num = Tok::varTree[token.name];
+        token.var = Tok::varTree[token.name];
 
       sEval.push(token);
     }
@@ -82,7 +82,10 @@ double Calculator::eval( void ) const
           checkDeclared(right.name);
 
           /* variable -> number transition */
-          right.num = Tok::varTree[right.name], right.id = TokID::NUM;
+          if (right.var.type == VarType::SINGLE)
+            right.var.num = Tok::varTree[right.name].num, right.id = TokID::NUM;
+          else
+            right.var.num = Tok::varTree[right.name].arr[right.var.usedIndex];
         }
       }
 
@@ -91,23 +94,26 @@ double Calculator::eval( void ) const
         throw "Not enough arguments!";
 
       /* If lvalue not required we can make transition */
-      if (left.id == TokID::VAR && 
-          token.op.name != "=" && token.op.name != "++" &&
+      if (left.id == TokID::VAR && token.op.name != "[]" &&
+          token.op.name != "="  && token.op.name != "++" &&
           token.op.name != "--" && token.op.name != "+=" &&
           token.op.name != "-=" && token.op.name != "/=" &&
           token.op.name != "%=" && token.op.name != "+=" &&
-          token.op.name != "scan")
+          token.op.name != "//=" && token.op.name != "scan")
       {
         /* Check declaration of left operand */
         checkDeclared(left.name);
 
         /* variable -> number transition */
-        left.num = Tok::varTree[left.name], left.id = TokID::NUM;
+        if (left.var.type == VarType::SINGLE)
+            left.var.num = Tok::varTree[left.name].num, left.id = TokID::NUM;
+          else
+            left.var.num = Tok::varTree[left.name].arr[left.var.usedIndex];
       }
 
       /* Check printw & printwln, because they require 2 arguments */
       /* After ',' callback right -> left */
-      if (token.op.name == "," && 
+      if (token.op.name == "," && !polizCopy.empty() &&
          (polizCopy.front().op.name == "printw" || 
           polizCopy.front().op.name == "printwln"))
         sEval.push(left);
@@ -128,5 +134,5 @@ double Calculator::eval( void ) const
   if (res.id == TokID::VAR)
     checkDeclared(res.name);
 
-  return res.num;
+  return res.var.num;
 }

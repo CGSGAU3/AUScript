@@ -134,7 +134,8 @@ bool Command::parse( void )
     if (cur.id == TokID::KEYW)
     {
       /* Because switch swears */
-      std::string exprInIf, exprInWhile, exprFor3;
+      std::string exprInIf, exprInWhile, 
+                  exprFor3, exprArraySize;
 
       switch (cur.keyw)
       {
@@ -225,6 +226,39 @@ bool Command::parse( void )
         if (cur.id != TokID::SPEC || cur.symbol != ';')
           throw "After echo statement ';' required!";
         break;
+      case Keyword::ARRAY:
+        /* Skip it */
+        id = CommandID::ARRAY;
+        nextTok();
+
+        /* Check '(' */
+        if (cur.id != TokID::OP || cur.op.name != "(")
+          throw "After array '(' expected!";
+        nextTok();
+
+        /* Check name */
+        if (cur.id != TokID::VAR)
+          throw "Invalid array name!";
+        echoStr = cur.name;
+        nextTok();
+
+        /* Check ')' */
+        if (cur.id != TokID::OP || cur.op.name != ")")
+          throw "After array name ')' expected!";
+        nextTok();
+
+        /* Check '(' again */
+        if (cur.id != TokID::OP || cur.op.name != "(")
+          throw "After array name with () '(' expected!";
+
+        /* Parse array size expression */
+        exprArraySize = parseBetween(tokList, ')');
+        expr = Calculator(exprArraySize);
+
+        cur = tokList.front();
+        if (cur.id != TokID::SPEC || cur.symbol != ';')
+          throw "After array declaration ';' required!";
+        break;
       case Keyword::ELSE:
         throw "Invalid else without paired if!";
       default:
@@ -291,6 +325,12 @@ void Command::run( void ) const
     break;
   case CommandID::ECHO:
     std::cout << echoStr << std::endl;
+    break;
+  case CommandID::ARRAY:
+    Tok::varTree[echoStr].type = VarType::ARRAY;
+    Tok::varTree[echoStr].arr.resize((size_t)expr.eval());
+    for (auto &num : Tok::varTree[echoStr].arr)
+      num = 0;
     break;
   case CommandID::COMPOSITE:
     for (const auto &cmd : nestedCommand)

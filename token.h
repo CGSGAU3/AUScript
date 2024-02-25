@@ -26,7 +26,8 @@ enum struct Keyword
   ELSE,  // if/else statement
   WHILE, // while loop
   FOR,   // for loop
-  ECHO   // raw print on screen
+  ECHO,  // raw print on screen
+  ARRAY, // array declaration
 };
 
 /* Operator type & associativity types */
@@ -34,7 +35,7 @@ enum struct OperType
 {
   INFIX,  // ex. +-/*
   PREFIX, // ex. unary -
-  POSTFIX // ex. ',' or ')'
+  POSTFIX // ex. ')'
 };
 
 enum struct OperAssocType
@@ -48,6 +49,8 @@ enum struct Prior
 {
   OPENBR,   // (
   CLOSEBR,  // )
+  OPENIDX,  // [
+  CLOSEIDX, // ]
   ZPT,      // ,
   ASSIGN,   // = and all = family
   BOOLOR,   // ||
@@ -59,6 +62,7 @@ enum struct Prior
   UNARYOP,  // unary - or unary ! or ++/--
   IOSQRT,   // print/scan ^ #
   SINCOS,   // sin/cos/etc.
+  INDEX,    // []
 };
 
 /* Operator structure */
@@ -75,19 +79,37 @@ struct Oper
   Prior prior;               // operator priority
 };
 
+/* Variable type enum */
+enum struct VarType
+{
+  SINGLE, // for single variables
+  ARRAY,  // for arrays
+};
+
+/* Variable structure */
+struct Variable
+{
+  /* Variable type */
+  VarType type = VarType::SINGLE;
+
+  double num;              // single
+  std::vector<double> arr; // arrays
+  int usedIndex;           // let [] return lvalue
+};
+
 /* Token structure */
 struct Tok
 {
   TokID id;         // ID to guess
   Oper op;          // for operators
-  double num;       // for numbers
+  Variable var;     // for numbers & arrays
   std::string name; // for variables
   char symbol;      // for special symbols
   Keyword keyw;     // for keywords
 
   /* Static fields to use operators in convenient way */
   static std::vector<Oper> opers;
-  static std::map<std::string, double> varTree;
+  static std::map<std::string, Variable> varTree;
   static Oper & findOper( const std::string &name );
 };
 

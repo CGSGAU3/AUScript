@@ -6,13 +6,6 @@ int main( void )
 {
   jmp_buf jmpBuffer;
 
-  /*
-   * TODO
-   *   - make keyword to output NORMAL string
-   *       echo(Hello, World!);
-   *   - make arrays (VERY OPTIONAL)
-   */
-
   auto outputNumber = []
   ( double num )
   {
@@ -24,8 +17,24 @@ int main( void )
       printf("%g", num);
   };
 
+  auto outputVar = [&]
+  ( const Variable &var )
+  {
+    if (var.type == VarType::SINGLE)
+      outputNumber(var.num);
+    else
+    {
+      std::cout << "[";
+      for (size_t i = 0; i < var.arr.size() - 1; i++)
+        std::cout << var.arr[i] << ", ";
+      std::cout << var.arr[var.arr.size() - 1];
+      std::cout << "]";
+    }
+  };
+
   // If we catch error it'll go there and redo input
-  if (setjmp(jmpBuffer));
+  if (setjmp(jmpBuffer))
+    std::cin.clear();
 
   try
   {
@@ -37,10 +46,7 @@ int main( void )
       std::getline(std::cin, str);
 
       if (str.length() == 0)
-      {
-        std::cout << std::endl;
         continue;
-      }
       if (str == "exit" || str == "exit()")
         break;
       if (str == "getVars")
@@ -49,7 +55,7 @@ int main( void )
         for (const auto &p : Tok::varTree)
         {
           std::cout << p.first << " = ";
-          outputNumber(p.second);
+          outputVar(p.second);
           std::cout << std::endl;
         }
         continue;
@@ -58,10 +64,19 @@ int main( void )
       {
         Interpreter intp("pif.aus");
 
-        long t = clock();
         intp.run();
+        continue;
+      }
+      if (str == "toBin")
+      {
+        Interpreter intp("arr.aus");
+
+        intp.run();
+#if 0
+        long t = clock();
         t = clock() - t;
         std::cout << "time: " << t << " milliseconds" << std::endl;
+#endif
         continue;
       }
 
