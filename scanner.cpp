@@ -99,6 +99,7 @@ Scanner::Scanner( const std::string &str )
             {"if", Keyword::IF},
             {"else", Keyword::ELSE},
             {"while", Keyword::WHILE},
+            {"for", Keyword::FOR},
             {"echo", Keyword::ECHO}
           };
 

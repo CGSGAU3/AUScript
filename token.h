@@ -25,9 +25,8 @@ enum struct Keyword
   IF,    // if/else statement
   ELSE,  // if/else statement
   WHILE, // while loop
+  FOR,   // for loop
   ECHO   // raw print on screen
-
-  /* Note. there is no for loop, because it harder */
 };
 
 /* Operator type & associativity types */

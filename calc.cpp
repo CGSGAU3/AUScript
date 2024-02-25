@@ -7,7 +7,9 @@ Calculator::Calculator( const std::string &str )
     /* Scan & parse expression */
     scanner = Scanner(str);
     parser = Parser(scanner.getQueue());
-    poliz = parser.run();
+
+    if (!scanner.getQueue().empty())
+      poliz = parser.run();
   }
   catch ( const char *err )
   {
@@ -28,7 +30,7 @@ double Calculator::eval( void ) const
 
   /* Nothing to evaluate */
   if (poliz.empty())
-    return 0;
+    return 1;
 
   /* Check declaration of variables to avoid collapses */
   auto checkDeclared = []

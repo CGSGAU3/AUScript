@@ -51,6 +51,23 @@ std::string parseBetween( Queue<Tok> &tokList, const char last )
   return res.str();
 }
 
+/* Clear command function */
+void clearCmd( Command *cmd )
+{
+  if (cmd == nullptr)
+    return;
+
+  if (cmd->addon1 != nullptr)
+    clearCmd(cmd->addon1);
+  if (cmd->addon2 != nullptr)
+    clearCmd(cmd->addon2);
+  if (cmd->addon3 != nullptr)
+    clearCmd(cmd->addon3);
+  for (auto &nest : cmd->nestedCommand)
+    clearCmd(nest);
+  delete cmd;
+}
+
 /* Command parse method */
 bool Command::parse( void )
 {
@@ -70,6 +87,10 @@ bool Command::parse( void )
   auto getExpr = [&]( void )
   {
     std::stringstream res;
+
+    /* Chek empty command */
+    if (cur.id == TokID::SPEC && cur.symbol == ';')
+      return res.str();
 
     /* Write current token */
     res << cur << ' ';
@@ -113,7 +134,7 @@ bool Command::parse( void )
     if (cur.id == TokID::KEYW)
     {
       /* Because switch swears */
-      std::string exprInIf, exprInWhile;
+      std::string exprInIf, exprInWhile, exprFor3;
 
       switch (cur.keyw)
       {
@@ -166,6 +187,35 @@ bool Command::parse( void )
         if (!addon1->parse())
           throw "Unexpected end of while block!";
         break;
+      case Keyword::FOR:
+        /* Skip keyword */
+        id = CommandID::FOR;
+        nextTok();
+
+        /* Check '(' */
+        if (cur.id != TokID::OP || cur.op.name != "(")
+          throw "After for '(' expected!";
+
+        /* Parse 1st expression */
+        addon1 = new Command(tokList);
+        if (!addon1->parse() || addon1->id != CommandID::EXPR)
+          throw "Error in parse 1st expression in for loop!";
+
+        /* Get expression to stop loop (2nd expression) */
+        nextTok();
+        expr = Calculator(getExpr());
+
+        /* Parse 3rd expression */
+        addon2 = new Command(tokList);
+        exprFor3 = parseBetween(tokList, ')');
+        addon2->expr = Calculator(exprFor3);
+
+        /* Parse body of loop */
+        addon3 = new Command(tokList);
+        if (!addon3->parse())
+          throw "Unexpected end of for block!";
+
+        break;
       case Keyword::ECHO:
         /* Get information from token & skip */
         id = CommandID::ECHO;
@@ -181,23 +231,28 @@ bool Command::parse( void )
         throw "Unknown keyword!";
       }
     }
-    else if (cur.id == TokID::SPEC && cur.symbol == '{')
+    else if (cur.id == TokID::SPEC)
     {
-      id = CommandID::COMPOSITE;
-
-      /* Parse nested command */
-      while (tokList.front().id != TokID::SPEC ||
-             tokList.front().symbol != '}')
+      if (cur.symbol == '{')
       {
-        Command *cmd = new Command(tokList);
+        id = CommandID::COMPOSITE;
 
-        if (!cmd->parse())
-          throw "Unexpected end of composite block!";
-        nestedCommand.push_back(cmd);
+        /* Parse nested command */
+        while (tokList.front().id != TokID::SPEC ||
+               tokList.front().symbol != '}')
+        {
+          Command *cmd = new Command(tokList);
+
+          if (!cmd->parse())
+            throw "Unexpected end of composite block!";
+          nestedCommand.push_back(cmd);
+        }
+
+        /* And skip '}' */
+        nextTok();
       }
-
-      /* And skip '}' */
-      nextTok();
+      else if (cur.symbol == ';') // empty command
+        return true;
     }
     else
     {
@@ -229,6 +284,10 @@ void Command::run( void ) const
   case CommandID::WHILE:
     while ((bool)expr.eval())
       addon1->run();
+    break;
+  case CommandID::FOR:
+    for (addon1->expr.eval(); (bool)expr.eval(); addon2->expr.eval())
+      addon3->run();
     break;
   case CommandID::ECHO:
     std::cout << echoStr << std::endl;
@@ -280,37 +339,43 @@ Interpreter::Interpreter( const std::string &fileName )
     {
       Command *cmd = new Command(tokList);
 
-      if (!cmd->parse())
+      try
       {
-        delete cmd;
-        break;
+        if (!cmd->parse())
+        {
+          clearCmd(cmd);
+          break;
+        }
+        cmdList.put(cmd);
       }
-      cmdList.put(cmd);
+      catch ( const char *err )
+      {
+        clearCmd(cmd);
+        clear();
+        throw err;
+      }
+      catch ( const std::exception &ex )
+      {
+        clearCmd(cmd);
+        clear();
+        throw ex;
+      }
+      catch (...)
+      {
+        clearCmd(cmd);
+        clear();
+        throw "Unknown error in parse!";
+      }
     }
   }
   catch ( const char *err )
   {
     throw err;
   }
-  catch (...)
+  catch ( const std::exception &ex )
   {
-    throw "Unknown error in commands parse!";
+    throw ex;
   }
-}
-
-/* Clear command function */
-void clearCmd( Command *cmd )
-{
-  if (cmd == nullptr)
-    return;
-
-  if (cmd->addon1 != nullptr)
-    clearCmd(cmd->addon1);
-  if (cmd->addon2 != nullptr)
-    clearCmd(cmd->addon2);
-  for (auto &nest : cmd->nestedCommand)
-    clearCmd(nest);
-  delete cmd;
 }
 
 /* Interpreter main function */
@@ -342,11 +407,17 @@ void Interpreter::run( void )
   }
 }
 
-/* Interpreter destructor */
-Interpreter::~Interpreter( void )
+/* Interpreter clear */
+void Interpreter::clear( void )
 {
   Command *cmd;
 
   while (cmdList.get(&cmd))
     clearCmd(cmd);
+}
+
+/* Interpreter destructor */
+Interpreter::~Interpreter( void )
+{
+  clear();
 }

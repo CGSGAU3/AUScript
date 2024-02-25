@@ -8,6 +8,7 @@ enum struct CommandID
   EXPR,     // for common expressions
   IF,       // if/else statement
   WHILE,    // while loop
+  FOR,      // for loop
   ECHO,     // echo command
   COMPOSITE // for commands in {}
 };
@@ -21,7 +22,8 @@ struct Command
   CommandID id;        // type of the command
   Calculator expr;     // for expressions
   Command *addon1,     // for if statement & while
-          *addon2;     // for else statement
+          *addon2,     // for else statement
+          *addon3;     // for "for" loop
   std::string echoStr; // for echo
 
   /* For composite commands */
@@ -32,8 +34,8 @@ struct Command
 
   /* Default initialization */
   Command( Queue<Tok> &input ) : id(CommandID::EXPR),
-    addon1(nullptr), addon2(nullptr), tokList(input), 
-    echoStr("")
+    addon1(nullptr), addon2(nullptr), addon3(nullptr),
+    tokList(input), echoStr("")
   {
   }
 
@@ -62,6 +64,9 @@ public:
 
   /* Run function */
   void run( void );
+
+  /* Clear method */
+  void clear( void );
 
   /* Destructor */
   ~Interpreter( void );

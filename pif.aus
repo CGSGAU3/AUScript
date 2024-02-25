@@ -1,19 +1,10 @@
 echo(Input last number: );
 last = 0;
 scan(last);
-w = h = 1;
-while (w <= last)
-{
-  while (h <= last)
-  {
+
+for (w = 1; w <= last; ++w)
+  for (h = 1; h <= last; ++h)
     if (h != last)
       printw(w * h, 5);
     else
       printwln(w * h, 5);
-    ++h;
-  }
-  ++w;
-  h = 1;
-}
-
-  
