@@ -1,0 +1,30 @@
+array (arr) (10);
+for (i = 0; i < 10; ++i)
+  arr[i] = i % 3;
+
+echo(Array before sort:);
+for (i = 0; i < 10; ++i)
+  printw(arr[i], 2);
+echo();
+
+for (i = 1; i < 10; ++i)
+{
+  x = arr[i];
+  j = i - 1;
+  save = 0;
+  
+  while (j >= 0)
+    if (x < arr[j])
+      arr[j + 1] = arr[j], --j;
+    else
+    {
+      save = j;
+      j = -1;
+    }
+  arr[save + 1] = x;
+}
+
+echo(Array after sort:);
+for (i = 0; i < 10; ++i)
+  printw(arr[i], 2);
+echo();

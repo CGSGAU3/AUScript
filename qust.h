@@ -139,7 +139,7 @@ public:
   }
 
   /* Output queue to the cmdline */
-  void display( void )
+  void display( void ) const
   {
     Entry<Type> *ptr = head;
 

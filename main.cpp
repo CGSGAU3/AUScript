@@ -6,6 +6,10 @@ int main( void )
 {
   jmp_buf jmpBuffer;
 
+  ///Scanner scan("arr[9 - i] = 4");
+  ///Parser parse(scan.getQueue());
+  ///parse.run().display();
+
   auto outputNumber = []
   ( double num )
   {
@@ -66,6 +70,13 @@ int main( void )
       if (str == "pifTable")
       {
         Interpreter intp("pif.aus");
+
+        intp.run();
+        continue;
+      }
+      if (str == "sort")
+      {
+        Interpreter intp("sort.aus");
 
         intp.run();
         continue;

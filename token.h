@@ -49,14 +49,14 @@ enum struct Prior
 {
   OPENBR,   // (
   CLOSEBR,  // )
-  OPENIDX,  // [
-  CLOSEIDX, // ]
   ZPT,      // ,
   ASSIGN,   // = and all = family
   BOOLOR,   // ||
   BOOLAND,  // &&
   EQUALNOT, // == !=
   LESSMORE, // < <= > >=
+  OPENIDX,  // [
+  CLOSEIDX, // ]
   PLUSMIN,  // + -
   MULDIV,   // * / %
   UNARYOP,  // unary - or unary ! or ++/--
