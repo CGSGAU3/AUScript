@@ -38,10 +38,7 @@ int main( void )
 
   // If we catch error it'll go there and redo input
   if (setjmp(jmpBuffer))
-  {
     std::cin.clear();
-    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-  }
 
   try
   {
