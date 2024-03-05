@@ -18,7 +18,7 @@ int main( void )
     if (fabs(frac) < 1e-14)
       printf("%i", (int)num);
     else
-      printf("%g", num);
+      printf("%.16g", num);
   };
 
   auto outputVar = [&]
@@ -37,8 +37,7 @@ int main( void )
   };
 
   // If we catch error it'll go there and redo input
-  if (setjmp(jmpBuffer))
-    std::cin.clear();
+  if (setjmp(jmpBuffer));
 
   try
   {
@@ -93,7 +92,8 @@ int main( void )
 
       Calculator calc(str);
 
-      std::cout << calc.eval() << std::endl;
+      outputNumber(calc.eval());
+      std::cout << std::endl;
     }
   }
   catch ( const char *err )

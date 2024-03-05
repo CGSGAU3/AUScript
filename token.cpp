@@ -374,6 +374,7 @@ std::vector<Oper> Tok::opers =
             if (std::cin.fail())
             {
               std::cin.clear();
+              std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
               throw "Invalid input!";
             }
             Tok::varTree[l.name].num = l.var.num;
