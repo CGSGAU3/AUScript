@@ -6,10 +6,6 @@ int main( void )
 {
   jmp_buf jmpBuffer;
 
-  ///Scanner scan("arr[9 - i] = 4");
-  ///Parser parse(scan.getQueue());
-  ///parse.run().display();
-
   auto outputNumber = []
   ( double num )
   {

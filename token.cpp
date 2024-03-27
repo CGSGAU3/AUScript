@@ -402,8 +402,10 @@ std::vector<Oper> Tok::opers =
 Oper & Tok::findOper( const std::string &name )
 {
   for (auto &op : opers)
+  {
     if (op.name == name)
       return op;
+  }
   throw "Unknown operator!";
 }
 

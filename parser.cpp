@@ -35,10 +35,12 @@ Queue<Tok> & Parser::run( void )
         state == State::SUFFIX)
     {
       if (!source.get(&token))
+      {
         if (state == State::SUFFIX)
           state = State::DONE;
         else
           throw "Unexpected end of expression!";
+      }
     }
 
     switch (state)
