@@ -66,6 +66,13 @@ int main( void )
         intp.run();
         continue;
       }
+      if (str == "brCont")
+      {
+        Interpreter intp("brcont.aus");
+
+        intp.run();
+        continue;
+      }
       if (str == "sort")
       {
         Interpreter intp("sort.aus");

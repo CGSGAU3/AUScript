@@ -69,7 +69,7 @@ void clearCmd( Command *cmd )
 }
 
 /* Command parse method */
-bool Command::parse( void )
+bool Command::parse( Command *cycle )
 {
   Tok cur;
   bool isEndOfList = false;
@@ -124,6 +124,9 @@ bool Command::parse( void )
 
   try
   {
+    /* Assign parent loop */
+    loop = cycle;
+
     /* Get first token of command */
     nextTok();
 
@@ -154,7 +157,7 @@ bool Command::parse( void )
 
         /* Parse expression in if statement */
         addon1 = new Command(tokList);
-        if (!addon1->parse())
+        if (!addon1->parse(cycle))
           throw "Unexpected end of if block!";
 
         /* Parse else statement (optional) */
@@ -166,7 +169,7 @@ bool Command::parse( void )
 
           /* Parse else statement */
           addon2 = new Command(tokList);
-          if (!addon2->parse())
+          if (!addon2->parse(cycle))
             throw "Unexpected end of else block!";
         }
         break;
@@ -185,7 +188,7 @@ bool Command::parse( void )
 
         /* Parse expression in while statement */
         addon1 = new Command(tokList);
-        if (!addon1->parse())
+        if (!addon1->parse(this))
           throw "Unexpected end of while block!";
         break;
       case Keyword::FOR:
@@ -213,7 +216,7 @@ bool Command::parse( void )
 
         /* Parse body of loop */
         addon3 = new Command(tokList);
-        if (!addon3->parse())
+        if (!addon3->parse(this))
           throw "Unexpected end of for block!";
 
         break;
@@ -259,6 +262,24 @@ bool Command::parse( void )
         if (cur.id != TokID::SPEC || cur.symbol != ';')
           throw "After array declaration ';' required!";
         break;
+      case Keyword::BREAK:
+        /* Skip keyword */
+        id = CommandID::BREAK;
+        nextTok();
+
+        /* Check ; */
+        if (cur.id != TokID::SPEC || cur.symbol != ';')
+          throw "Missing ';'";
+        break;
+      case Keyword::CONTINUE:
+        /* Skip keyword */
+        id = CommandID::CONTINUE;
+        nextTok();
+
+        /* Check ; */
+        if (cur.id != TokID::SPEC || cur.symbol != ';')
+          throw "Missing ';'";
+        break;
       case Keyword::ELSE:
         throw "Invalid else without paired if!";
       default:
@@ -277,7 +298,7 @@ bool Command::parse( void )
         {
           Command *cmd = new Command(tokList);
 
-          if (!cmd->parse())
+          if (!cmd->parse(cycle))
             throw "Unexpected end of composite block!";
           nestedCommand.push_back(cmd);
         }
@@ -302,7 +323,7 @@ bool Command::parse( void )
 }
 
 /* Command run method */
-void Command::run( void ) const
+void Command::run( void )
 {
   switch (id)
   {
@@ -317,11 +338,40 @@ void Command::run( void ) const
     break;
   case CommandID::WHILE:
     while ((bool)expr.eval())
+    {
+      if (loopContinued)
+      {
+        loopContinued = false;
+        continue;
+      }
+      if (loopStopped)
+      {
+        loopStopped = false;
+        break;
+      }
       addon1->run();
+    }
     break;
   case CommandID::FOR:
+    loopStopped = false;
     for (addon1->expr.eval(); (bool)expr.eval(); addon2->expr.eval())
+    {
+      if (loopContinued)
+      {
+        loopContinued = false;
+        continue;
+      }
+      if (loopStopped)
+        break;
+
       addon3->run();
+    }
+    break;
+  case CommandID::BREAK:
+    loop->loopStopped = true;
+    break;
+  case CommandID::CONTINUE:
+    loop->loopContinued = true;
     break;
   case CommandID::ECHO:
     std::cout << echoStr << std::endl;
@@ -333,8 +383,23 @@ void Command::run( void ) const
       num = 0;
     break;
   case CommandID::COMPOSITE:
+    if (loop != nullptr)
+      loop->loopStopped = false;
     for (const auto &cmd : nestedCommand)
+    {
+      if (loop != nullptr)
+      {
+        if (loop->loopContinued)
+        {
+          loop->loopContinued = false;
+          continue;
+        }
+        if (loop->loopStopped)
+          break;
+      }
+
       cmd->run();
+    }
     break;
   default:
     throw "Unknown command!";

@@ -100,6 +100,8 @@ Scanner::Scanner( const std::string &str )
             {"else", Keyword::ELSE},
             {"while", Keyword::WHILE},
             {"for", Keyword::FOR},
+            {"break", Keyword::BREAK},
+            {"continue", Keyword::CONTINUE},
             {"echo", Keyword::ECHO},
             {"array", Keyword::ARRAY}
           };

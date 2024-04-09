@@ -22,12 +22,14 @@ enum struct TokID
 /* Keywords also different */
 enum struct Keyword
 {
-  IF,    // if/else statement
-  ELSE,  // if/else statement
-  WHILE, // while loop
-  FOR,   // for loop
-  ECHO,  // raw print on screen
-  ARRAY, // array declaration
+  IF,       // if/else statement
+  ELSE,     // if/else statement
+  WHILE,    // while loop
+  FOR,      // for loop
+  ECHO,     // raw print on screen
+  ARRAY,    // array declaration
+  BREAK,    // break statement
+  CONTINUE, // continue for loops
 };
 
 /* Operator type & associativity types */

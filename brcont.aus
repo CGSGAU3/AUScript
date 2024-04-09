@@ -1,0 +1,27 @@
+echo(Test for continue:);
+for (i = 0; i < 10; ++i)
+{
+  if (i == 5)
+    continue;
+  println(i);
+}
+
+echo(Test double loop:);
+for (i = 1; i <= 3; ++i)
+{
+  for (j = 1; j <= 3; ++j)
+  {
+    if (j == 2)
+      break;
+    println(i * j);
+  }
+}
+
+echo(Test infinite loop:);
+i = 0;
+for (;;)
+{
+  if (i == 6)
+    break;
+  println(++i);
+}
