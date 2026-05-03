@@ -167,7 +167,11 @@ Scanner::Scanner( const std::string &str )
         break;
       }
       else
-        throw "Unknown character!";
+      {
+        std::string err = std::string("Unknown character '") + *s + "'!";
+
+        throw err.c_str();
+      }
     }
     scanned.put(token);
   }

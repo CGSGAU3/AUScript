@@ -6,14 +6,37 @@ int main( int argC, char *argV[] )
 {
   if (argC == 2)
   {
-    Interpreter intp(argV[1]);
+    try
+    {
+      Interpreter intp(argV[1]);
 
-    intp.run();
-    return EXIT_SUCCESS;
+      intp.run();
+      return EXIT_SUCCESS;
+    }
+    catch ( const char *err )
+    {
+      std::cerr << err << std::endl;
+      return EXIT_FAILURE;
+    }
+    catch ( const std::string &undecl )
+    {
+      std::cerr << undecl << std::endl;
+      return EXIT_FAILURE;
+    }
+    catch ( const std::exception &ex )
+    {
+      std::cerr << ex.what() << std::endl;
+      return EXIT_FAILURE;
+    }
+    catch (...)
+    {
+      std::cerr << "Smt goes wrong..." << std::endl;
+      return EXIT_FAILURE;
+    }
   }
   else if (argC != 1)
   {
-    std::cerr << "Invalid usage! Usage: auscript (<file>)" << std::endl;
+    std::cerr << "Invalid usage! Usage: auscript [<file>.aus]" << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -22,10 +45,10 @@ int main( int argC, char *argV[] )
   auto outputNumber = []
   ( double num )
   {
-    double frac = num - (int)num;
+    double frac = num - round(num);
 
     if (fabs(frac) < 1e-14)
-      printf("%i", (int)num);
+      printf("%g", round(num));
     else
       printf("%.16g", num);
   };
@@ -74,35 +97,35 @@ int main( int argC, char *argV[] )
       }
       if (str == "pifTable")
       {
-        Interpreter intp("pif.aus");
+        Interpreter intp("examples/pif.aus");
 
         intp.run();
         continue;
       }
       if (str == "brCont")
       {
-        Interpreter intp("brcont.aus");
+        Interpreter intp("examples/brcont.aus");
 
         intp.run();
         continue;
       }
       if (str == "sort")
       {
-        Interpreter intp("sort.aus");
+        Interpreter intp("examples/sort.aus");
 
         intp.run();
         continue;
       }
       if (str == "doTest")
       {
-        Interpreter intp("test.aus");
+        Interpreter intp("examples/test.aus");
 
         intp.run();
         continue;
       }
       if (str == "toBin")
       {
-        Interpreter intp("arr.aus");
+        Interpreter intp("examples/arr.aus");
 
         intp.run();
 #if 0

@@ -1,0 +1,30 @@
+echo(Accelerated Pi via Euler transform);
+
+M = 100;
+K = 200;
+array (arr) (M);
+i = 0;
+sum = 0;
+sign = 1;
+
+for (i = 0; i < M; ++i)
+{
+  term = sign / (2.0 * i + 1.0);
+  sum += term;
+  arr[i] = sum;
+  sign = -sign;
+}
+
+len = M;
+step = 0;
+for (step = 0; step < K; ++step)
+{
+  for (i = 0; i < len - 1; ++i)
+    arr[i] = (arr[i] + arr[i + 1]) / 2.0;
+
+  --len;
+}
+
+piEst = 4.0 * arr[0];
+echo(Estimated Pi:);
+println(piEst);

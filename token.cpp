@@ -335,48 +335,48 @@ std::vector<Oper> Tok::opers =
   {"print", std::function<Tok( Tok &, const Tok & )>
         ([]( Tok &l, const Tok &r ) -> Tok
           {
-            double frac = l.var.num - (int)l.var.num;
+            double frac = l.var.num - round(l.var.num);
 
             if (fabs(frac) < 1e-14)
-              printf("%i", (int)l.var.num);
+              printf("%g", round(l.var.num));
             else
-              printf("%g", l.var.num);
+              printf("%.16g", l.var.num);
             return l;
           }
         ), OperType::PREFIX, OperAssocType::LEFT, Prior::IOSQRT},
   {"println", std::function<Tok( Tok &, const Tok & )>
         ([]( Tok &l, const Tok &r ) -> Tok
           {
-            double frac = l.var.num - (int)l.var.num;
+            double frac = l.var.num - round(l.var.num);
 
             if (fabs(frac) < 1e-14)
-              printf("%i\n", (int)l.var.num);
+              printf("%g\n", round(l.var.num));
             else
-              printf("%g\n", l.var.num);
+              printf("%.16g\n", l.var.num);
             return l;
           }
         ), OperType::PREFIX, OperAssocType::LEFT, Prior::IOSQRT},
   {"printw", std::function<Tok( Tok &, const Tok & )>
         ([]( Tok &l, const Tok &r ) -> Tok
           {
-            double frac = l.var.num - (int)l.var.num;
+            double frac = l.var.num - round(l.var.num);
 
             if (fabs(frac) < 1e-14)
-              printf("%*i", (int)r.var.num, (int)l.var.num);
+              printf("%*g", (int)r.var.num, round(l.var.num));
             else
-              printf("%*g", (int)r.var.num, l.var.num);
+              printf("%*.16g", (int)r.var.num, l.var.num);
             return l;
           }
         ), OperType::PREFIX, OperAssocType::LEFT, Prior::IOSQRT},
   {"printwln", std::function<Tok( Tok &, const Tok & )>
         ([]( Tok &l, const Tok &r ) -> Tok
           {
-            double frac = l.var.num - (int)l.var.num;
+            double frac = l.var.num - round(l.var.num);
 
             if (fabs(frac) < 1e-14)
-              printf("%*i\n", (int)r.var.num, (int)l.var.num);
+              printf("%*g\n", (int)r.var.num, round(l.var.num));
             else
-              printf("%*g\n", (int)r.var.num, l.var.num);
+              printf("%*.16g\n", (int)r.var.num, l.var.num);
             return l;
           }
         ), OperType::PREFIX, OperAssocType::LEFT, Prior::IOSQRT},
@@ -395,7 +395,11 @@ std::vector<Oper> Tok::opers =
               std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
               throw "Invalid input!";
             }
+
             Tok::varTree[l.name].num = l.var.num;
+            if (l.var.type == VarType::ARRAY)
+              Tok::varTree[l.name].arr[l.var.usedIndex] = l.var.num;
+
             return l;
           }
         ), OperType::PREFIX, OperAssocType::LEFT, Prior::IOSQRT},
