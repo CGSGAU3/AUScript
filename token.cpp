@@ -88,6 +88,9 @@ std::vector<Oper> Tok::opers =
               throw "LValue required!";
 
             Tok::varTree[l.name].num++, l.var.num++;
+            if (l.var.type == VarType::ARRAY)
+              Tok::varTree[l.name].arr[l.var.usedIndex]++;
+
             return l;
           }
         ), OperType::PREFIX, OperAssocType::RIGHT, Prior::UNARYOP},
@@ -98,6 +101,9 @@ std::vector<Oper> Tok::opers =
               throw "LValue required!";
 
             Tok::varTree[l.name].num--, l.var.num--;
+            if (l.var.type == VarType::ARRAY)
+              Tok::varTree[l.name].arr[l.var.usedIndex]--;
+
             return l;
           }
         ), OperType::PREFIX, OperAssocType::RIGHT, Prior::UNARYOP},
