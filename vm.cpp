@@ -258,7 +258,7 @@ bool Command::parse( Command *cycle )
         exprArraySize = parseBetween(tokList, ')');
         expr = Calculator(exprArraySize);
 
-        cur = tokList.front();
+        nextTok();
         if (cur.id != TokID::SPEC || cur.symbol != ';')
           throw "After array declaration ';' required!";
         break;

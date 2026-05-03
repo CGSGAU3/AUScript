@@ -2,8 +2,21 @@
 
 #include "vm.h"
 
-int main( void )
+int main( int argC, char *argV[] )
 {
+  if (argC == 2)
+  {
+    Interpreter intp(argV[1]);
+
+    intp.run();
+    return EXIT_SUCCESS;
+  }
+  else if (argC != 1)
+  {
+    std::cerr << "Invalid usage! Usage: auscript (<file>)" << std::endl;
+    return EXIT_FAILURE;
+  }
+
   jmp_buf jmpBuffer;
 
   auto outputNumber = []

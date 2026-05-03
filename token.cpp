@@ -155,6 +155,9 @@ std::vector<Oper> Tok::opers =
               throw "LValue required!";
 
             Tok::varTree[l.name].num += r.var.num;
+            if (l.var.type == VarType::ARRAY)
+              Tok::varTree[l.name].arr[l.var.usedIndex] += r.var.num;
+
             l.var.num += r.var.num;
             return l;
           }
@@ -166,6 +169,9 @@ std::vector<Oper> Tok::opers =
               throw "LValue required!";
 
             Tok::varTree[l.name].num -= r.var.num;
+            if (l.var.type == VarType::ARRAY)
+              Tok::varTree[l.name].arr[l.var.usedIndex] -= r.var.num;
+
             l.var.num -= r.var.num;
             return l;
           }
@@ -177,6 +183,9 @@ std::vector<Oper> Tok::opers =
               throw "LValue required!";
 
             Tok::varTree[l.name].num *= r.var.num;
+            if (l.var.type == VarType::ARRAY)
+              Tok::varTree[l.name].arr[l.var.usedIndex] *= r.var.num;
+
             l.var.num *= r.var.num;
             return l;
           }
@@ -191,6 +200,9 @@ std::vector<Oper> Tok::opers =
               throw "Division by zero!";
 
             Tok::varTree[l.name].num /= r.var.num;
+            if (l.var.type == VarType::ARRAY)
+              Tok::varTree[l.name].arr[l.var.usedIndex] /= r.var.num;
+
             l.var.num /= r.var.num;
             return l;
           }
@@ -205,6 +217,9 @@ std::vector<Oper> Tok::opers =
               throw "Division by zero!";
 
             Tok::varTree[l.name].num = int(Tok::varTree[l.name].num / r.var.num);
+            if (l.var.type == VarType::ARRAY)
+              Tok::varTree[l.name].arr[l.var.usedIndex] = int(Tok::varTree[l.name].arr[l.var.usedIndex] / r.var.num);
+
             l.var.num = int(l.var.num / r.var.num);
             return l;
           }
@@ -219,6 +234,9 @@ std::vector<Oper> Tok::opers =
               throw "Division by zero!";
 
             Tok::varTree[l.name].num = fmod(l.var.num, r.var.num);
+            if (l.var.type == VarType::ARRAY)
+              Tok::varTree[l.name].arr[l.var.usedIndex] = fmod(Tok::varTree[l.name].arr[l.var.usedIndex], r.var.num);
+
             l.var.num = fmod(l.var.num, r.var.num);
             return l;
           }
