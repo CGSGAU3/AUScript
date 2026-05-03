@@ -61,7 +61,16 @@ Queue<Tok> & Parser::run( void )
 
       /* Put oper to the stack, but at first drop opers with
          prior >= current oper prior to the result queue */
-      dropOpers(token.op);
+      if (token.op.name == "[")
+      {
+        token.op.prior = Prior::INDEX;
+        dropOpers(token.op);
+        token.op.prior = Prior::OPENIDX;
+      }
+      else
+      {
+        dropOpers(token.op);
+      }
 
       if (token.op.name == "]")
       {

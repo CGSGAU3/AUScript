@@ -83,9 +83,10 @@ double Calculator::eval( void ) const
 
           /* variable -> number transition */
           if (right.var.type == VarType::SINGLE)
-            right.var.num = Tok::varTree[right.name].num, right.id = TokID::NUM;
+            right.var.num = Tok::varTree[right.name].num;
           else
             right.var.num = Tok::varTree[right.name].arr[right.var.usedIndex];
+          right.id = TokID::NUM;
         }
       }
 
@@ -106,9 +107,10 @@ double Calculator::eval( void ) const
 
         /* variable -> number transition */
         if (left.var.type == VarType::SINGLE)
-            left.var.num = Tok::varTree[left.name].num, left.id = TokID::NUM;
-          else
-            left.var.num = Tok::varTree[left.name].arr[left.var.usedIndex];
+          left.var.num = Tok::varTree[left.name].num, left.id = TokID::NUM;
+        else
+          left.var.num = Tok::varTree[left.name].arr[left.var.usedIndex];
+        left.id = TokID::NUM;
       }
 
       /* Check printw & printwln, because they require 2 arguments */

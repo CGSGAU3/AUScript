@@ -93,6 +93,13 @@ int main( int argC, char *argV[] )
         intp.run();
         continue;
       }
+      if (str == "doTest")
+      {
+        Interpreter intp("test.aus");
+
+        intp.run();
+        continue;
+      }
       if (str == "toBin")
       {
         Interpreter intp("arr.aus");
